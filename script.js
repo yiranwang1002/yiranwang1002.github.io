@@ -34,6 +34,24 @@ let targetCount = 0;
 const MAX_TARGET = 10;
 let resultClockTimer = null;
 
+// ↓↓↓【这里插入整块工具函数，新增】
+function getTzDateTime(tz, dateObj){
+    const dateFmt = new Intl.DateTimeFormat('zh‑CN',{
+        timeZone:tz,
+        year:'numeric',month:'2‑digit',day:'2‑digit'
+    });
+    const timeFmt = new Intl.DateTimeFormat('zh‑CN',{
+        timeZone:tz,
+        hour:'2‑digit',minute:'2‑digit',second:'2‑digit',
+        hour12:false
+    });
+    return {
+        dateStr: dateFmt.format(dateObj),
+        timeStr: timeFmt.format(dateObj)
+    };
+}
+// ↑↑↑插入结束
+
 // ========== 实时顶部时钟 ==========
 function updateLiveClock(){
     const now = new Date();
@@ -254,6 +272,7 @@ calcBtn.onclick = async function(){
         card.className="mini-clock";
         card.innerHTML = `
             <h4>${city.name}</h4>
+            <div class="mini-date" data-tz="${city.tz}" data-base="${sourceDateObj.getTime()}">--</div>
             <div class="time" data-tz="${city.tz}" data-base="${sourceDateObj.getTime()}">--:--:--</div>
         `;
         resultBox.appendChild(card);
@@ -269,20 +288,29 @@ calcBtn.onclick = async function(){
         card.className="mini-clock";
         card.innerHTML = `
             <h4>${cityName}</h4>
+            <div class="mini-date" data-tz="${tz}" data-base="${sourceDateObj.getTime()}">--</div>
             <div class="time" data-tz="${tz}" data-base="${sourceDateObj.getTime()}">--:--:--</div>
         `;
         resultBox.appendChild(card);
     })
 
-    // 每秒刷新全部结果卡片时钟
+    // 每秒刷新全部结果卡片时钟（日期+时间）
     function refreshResultClocks(){
-        const cards = resultBox.querySelectorAll(".time");
-        cards.forEach(el=>{
+        const timeEls = resultBox.querySelectorAll(".time");
+        const dateEls = resultBox.querySelectorAll(".mini-date");
+
+        timeEls.forEach(el=>{
             const tz = el.dataset.tz;
             const baseTs = Number(el.dataset.base);
-            const nowOffset = Date.now() - baseTs;
-            const targetTime = new Date(baseTs + nowOffset);
-            el.innerText = new Intl.DateTimeFormat('zh-CN',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(targetTime);
+            const targetTime = new Date(baseTs + (Date.now() - baseTs));
+            el.innerText = getTzDateTime(tz, targetTime).timeStr;
+        })
+
+        dateEls.forEach(el=>{
+            const tz = el.dataset.tz;
+            const baseTs = Number(el.dataset.base);
+            const targetTime = new Date(baseTs + (Date.now() - baseTs));
+            el.innerText = getTzDateTime(tz, targetTime).dateStr;
         })
     }
     refreshResultClocks();

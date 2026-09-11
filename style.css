@@ -109,3 +109,14 @@ button:hover {
   font-weight:bold;
   color:#ffd166;
 }
+
+.mini-date {
+  font-size:14px;
+  color:#bbbbbb;
+  margin-bottom:6px;
+}
+.mini-clock .time {
+  font-size:26px;
+  font-weight:bold;
+  color:#ffd166;
+}
