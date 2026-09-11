@@ -2,18 +2,18 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 body {
   background-color: #12141c;
-  color: white;
+  color: #ffffff;
   min-height: 100vh;
 }
 
 .container {
-  padding: 20px;
-  max-width: 1200px;
+  padding: 24px;
+  max-width: 1250px;
   margin: 0 auto;
 }
 
@@ -25,8 +25,8 @@ h1 {
 
 .clock-card {
   background-color: #1e2230;
-  padding:30px 24px;
-  border-radius:16px;
+  padding:28px 24px;
+  border-radius:18px;
   margin:20px 0;
 }
 
@@ -39,12 +39,13 @@ h1 {
 .time-text {
   font-size:48px;
   font-weight:bold;
+  color:#ffd166;
 }
 
 .hint {
   font-size: 14px;
   opacity: 0.7;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .row {
@@ -52,10 +53,17 @@ h1 {
   flex-wrap: wrap;
   gap: 10px;
   align-items:center;
-  margin-bottom:12px;
+  margin-bottom:14px;
+}
+.target-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  margin:8px 0;
 }
 
-.row select, .row input {
+select, input {
   padding: 10px;
   font-size: 16px;
   border-radius: 8px;
@@ -72,31 +80,32 @@ button {
   background: #4a7dff;
   color: white;
   cursor: pointer;
+  transition: 0.2s;
 }
-
 button:hover {
   background: #6a93ff;
 }
 
 .result-row {
   display:flex;
-  gap:14px;
+  gap:16px;
   flex-wrap:wrap;
   margin-top:24px;
 }
 
 .mini-clock {
   background:#2a3040;
-  padding:16px;
-  border-radius:12px;
-  min-width:160px;
+  padding:20px;
+  border-radius:14px;
+  min-width:170px;
 }
 .mini-clock h4 {
   opacity:0.8;
   margin-bottom:8px;
+  font-size:18px;
 }
 .mini-clock .time {
-  font-size:24px;
+  font-size:26px;
   font-weight:bold;
   color:#ffd166;
 }

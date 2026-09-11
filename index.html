@@ -2,39 +2,46 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>多时区时钟</title>
+    <title>多时区时钟 | 异国守护</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
-    <h1>多时区时钟</h1>
+    <h1>多时区时钟 ⏰</h1>
 
     <div class="clock-card">
-        <h2>多伦多 (UTC−4)</h2>
+        <h2>多伦多 (America/Toronto)</h2>
         <div class="time-text" id="torontoTime">--:--:--</div>
     </div>
     <div class="clock-card">
-        <h2>北京时间 (UTC+8)</h2>
+        <h2>北京时间 (Asia/Shanghai)</h2>
         <div class="time-text" id="beijingTime">--:--:--</div>
     </div>
 
-
     <div class="clock-card">
         <h2>任意时区时间换算（批量）</h2>
-        <p class="hint">选择起点城市+时间，添加多个目标城市，一键批量换算</p>
+        <p class="hint">选择起点城市/搜索城市，添加多个目标城市，一键批量换算；卡片时钟实时走动</p>
+
+        <!-- 起点：下拉 + 搜索 -->
         <div class="row">
-            <select id="sourceCity">
-                <option value="-4">多伦多</option>
-                <option value="8">北京</option>
-                <option value="0">伦敦</option>
-                <option value="-5">纽约</option>
-                <option value="9">东京</option>
+            <select id="sourceCitySelect">
+                <option value="America/Toronto">多伦多</option>
+                <option value="Asia/Shanghai">北京</option>
+                <option value="America/New_York">纽约</option>
+                <option value="Europe/London">伦敦</option>
+                <option value="Asia/Tokyo">东京</option>
+                <option value="Australia/Sydney">悉尼</option>
+                <option value="America/Los_Angeles">洛杉矶</option>
+                <option value="Asia/Dubai">迪拜</option>
+                <option value="Europe/Paris">巴黎</option>
+                <option value="Asia/Singapore">新加坡</option>
             </select>
+            <input type="text" id="sourceSearchCity" placeholder="🔍 搜索城市(例如:Paris)">
             <input type="date" id="sourceDate">
             <input type="time" id="sourceTime">
         </div>
 
-        <!-- ✅ 关键：目标列表容器，JS新增行就插在这里！之前就是缺这个 -->
+        <!-- 新增目标城市区域 -->
         <div id="targetList" class="row"></div>
 
         <div class="row">
@@ -42,6 +49,7 @@
             <button id="calcBtn">批量换算 →</button>
         </div>
 
+        <!-- 结果：多个实时时钟卡片 -->
         <div class="result-row" id="resultBox"></div>
     </div>
 </div>
