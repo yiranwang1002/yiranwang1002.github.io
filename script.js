@@ -10,15 +10,8 @@ const cityList = [
     {name:"迪拜",tz:"Asia/Dubai"},
     {name:"巴黎",tz:"Europe/Paris"},
     {name:"新加坡",tz:"Asia/Singapore"},
-    {name:"雷克雅未克",tz:"Atlantic/Reykjavik"},
 ];
 const OTHER_FLAG = "__OTHER__"; // 标记：其他，开启搜索
-
-// ✅ 预设固定城市，每次批量换算自动出现在结果顶部
-const presetCities = [
-    {name:"多伦多",tz:"America/Toronto"},
-    {name:"北京",tz:"Asia/Shanghai"},
-];
 
 // 全局容器
 const targetListEl = document.getElementById("targetList");
@@ -42,10 +35,9 @@ setInterval(updateLiveClock,1000);
 updateLiveClock();
 
 
-// ========== Open-Meteo API：城市搜索【修复language，中文名称照样能查】 ==========
+// ========== Open-Meteo API：城市搜索 ==========
 async function searchCityGeo(cityName){
-    // language=en：海外城市中文译名可命中；中文城市输入中文名称也正常识别
-    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en`);
+    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=zh`);
     const json = await res.json();
     if(!json.results || json.results.length ===0) return null;
     return json.results[0];
@@ -154,7 +146,34 @@ sourceSearchInput.onkeydown = async function(e){
 // 页面初始：起点搜索框默认隐藏
 sourceSearchInput.style.display = "none";
 
-// ========== 批量换算【自动处理【其他】+ 增加预设城市卡片】 ==========
+// 把「某时区的本地年月日时分」转成正确的 UTC 时间戳
+// 不能用 new Date("YYYY-MM-DDTHH:mm")，那会被当成浏览器本地时区
+function zonedDateTimeToUtc(ymd, hms, timeZone){
+    const [y,m,d] = ymd.split("-").map(Number);
+    const [hh,mi] = hms.split(":").map(Number);
+    // 先假设这个时刻是 UTC，算出候选时间戳
+    let utc = Date.UTC(y, m-1, d, hh, mi, 0);
+    // 读取候选时间戳在目标时区里显示成什么，反向修正偏移（最多迭代几次收敛）
+    const dtf = new Intl.DateTimeFormat("en-CA", {
+        timeZone, hourCycle:"h23",
+        year:"numeric",month:"2-digit",day:"2-digit",
+        hour:"2-digit",minute:"2-digit",second:"2-digit"
+    });
+    const read = (t)=>{
+        const p = {};
+        dtf.formatToParts(t).forEach(part=>{ if(part.type!=="literal") p[part.type]=+part.value; });
+        return Date.UTC(p.year, p.month-1, p.day, p.hour, p.minute, p.second);
+    };
+    // 目标墙钟固定为“按UTC编码”的W；offset=该时区相对UTC的偏移（含夏令时，随候选时刻变化）
+    const W = Date.UTC(y, m-1, d, hh, mi, 0);
+    for(let i=0;i<3;i++){
+        const offset = read(utc) - utc;   // 候选时刻在该时区显示的墙钟 vs 候选UTC
+        utc = W - offset;                 // 用固定目标墙钟减去偏移，得到真实UTC
+    }
+    return utc;
+}
+
+// ========== 批量换算【修复：自动处理下拉=其他的行】 ==========
 calcBtn.onclick = async function(){
     const dateVal = document.getElementById("sourceDate").value;
     const timeVal = document.getElementById("sourceTime").value;
@@ -186,8 +205,11 @@ calcBtn.onclick = async function(){
 
     // 重新获取更新后的起点时区
     const finalSourceTz = sourceCitySelect.value;
-    const sourceDateTimeStr = `${dateVal}T${timeVal}`;
-    const sourceDateObj = new Date(sourceDateTimeStr);
+    // 把输入的年月日时分当作【起点时区】的本地时间，转成正确的UTC时间戳
+    const sourceDateObj = new Date(zonedDateTimeToUtc(dateVal, timeVal, finalSourceTz));
+
+    // 记录本次换算的“真实开始时刻”，卡片只从预设基准时间往前走
+    const calcStartReal = Date.now();
 
     // 清空旧结果 + 停止旧定时器
     resultBox.innerHTML = "";
@@ -226,18 +248,7 @@ calcBtn.onclick = async function(){
         }
     }
 
-    // ===== 第一步：渲染预设城市卡片 =====
-    presetCities.forEach(city=>{
-        const card = document.createElement("div");
-        card.className="mini-clock";
-        card.innerHTML = `
-            <h4>${city.name}</h4>
-            <div class="time" data-tz="${city.tz}" data-base="${sourceDateObj.getTime()}">--:--:--</div>
-        `;
-        resultBox.appendChild(card);
-    })
-
-    // ===== 第二步：渲染用户添加的目标城市卡片 =====
+    // 渲染卡片
     targetItems.forEach(rowEl=>{
         const selectEl = rowEl.querySelector(".target-city-select");
         const tz = selectEl.value;
@@ -252,14 +263,14 @@ calcBtn.onclick = async function(){
         resultBox.appendChild(card);
     })
 
-    // 每秒刷新全部结果卡片时钟
+    // 每秒刷新全部结果卡片时钟（从预设基准时间开始，按真实流逝前进）
     function refreshResultClocks(){
+        const elapsed = Date.now() - calcStartReal;   // 本次换算后真实流逝的毫秒
         const cards = resultBox.querySelectorAll(".time");
         cards.forEach(el=>{
             const tz = el.dataset.tz;
             const baseTs = Number(el.dataset.base);
-            const nowOffset = Date.now() - baseTs;
-            const targetTime = new Date(baseTs + nowOffset);
+            const targetTime = new Date(baseTs + elapsed);  // 从用户预设的时刻开始走动
             el.innerText = new Intl.DateTimeFormat('zh-CN',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(targetTime);
         })
     }
