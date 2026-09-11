@@ -1,4 +1,4 @@
-// 内置常用城市 IANA时区
+// 内置// 内置常用城市 IANA时区
 const cityList = [
     {name:"多伦多",tz:"America/Toronto"},
     {name:"北京",tz:"Asia/Shanghai"},
@@ -11,6 +11,8 @@ const cityList = [
     {name:"巴黎",tz:"Europe/Paris"},
     {name:"新加坡",tz:"Asia/Singapore"},
     {name:"雷克雅未克",tz:"Atlantic/Reykjavik"},
+    {name:"里约热内卢",tz:"America/Rio_de_Janeiro"},
+    {name:"符拉迪沃斯托克",tz:"Asia/Vladivostok"},
 ];
 const OTHER_FLAG = "__OTHER__"; // 标记：其他，开启搜索
 
@@ -41,11 +43,31 @@ function updateLiveClock(){
 setInterval(updateLiveClock,1000);
 updateLiveClock();
 
+// ========== 【新增】中文 → 英文翻译API (MyMemory，无需key) ==========
+async function cnToEn(text) {
+    try {
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.responseData && json.responseData.translatedText) {
+            return json.responseData.translatedText.trim();
+        }
+        return null;
+    }catch(err){
+        console.log("翻译API调用失败",err);
+        return null;
+    }
+}
 
-// ========== Open-Meteo API：城市搜索【修复language，中文名称照样能查】 ==========
-async function searchCityGeo(cityName){
-    // language=en：海外城市中文译名可命中；中文城市输入中文名称也正常识别
-    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en`);
+// ========== Open-Meteo API：城市搜索【增加翻译前置逻辑】 ==========
+async function searchCityGeo(rawCityName){
+    let searchWord = rawCityName.trim();
+    // 尝试中文翻译成英文，优先使用英文搜索海外城市
+    const enName = await cnToEn(searchWord);
+    if(enName){
+        searchWord = enName;
+    }
+    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchWord)}&count=1&language=en`);
     const json = await res.json();
     if(!json.results || json.results.length ===0) return null;
     return json.results[0];
@@ -100,7 +122,7 @@ addBtn.onclick = function(){
         if(!keyword) return;
         const cityGeo = await searchCityGeo(keyword);
         if(!cityGeo){
-            alert("❌ 找不到该城市");
+            alert(`❌ 找不到城市「${keyword}」，尝试换名称`);
             return;
         }
         let tzId = cityGeo.timezone;
@@ -137,7 +159,7 @@ sourceSearchInput.onkeydown = async function(e){
     if(!keyword) return;
     const cityGeo = await searchCityGeo(keyword);
     if(!cityGeo){
-        alert("❌找不到这个城市，请换关键词");
+        alert(`❌找不到城市「${keyword}」，尝试换关键词`);
         return;
     }
     let tzId = cityGeo.timezone;
