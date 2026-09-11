@@ -146,8 +146,8 @@ sourceSearchInput.onkeydown = async function(e){
 // 页面初始：起点搜索框默认隐藏
 sourceSearchInput.style.display = "none";
 
-// ========== 批量换算，生成【实时走动的时钟卡片】 ==========
-calcBtn.onclick = function(){
+// ========== 批量换算【修复：自动处理下拉=其他的行】 ==========
+calcBtn.onclick = async function(){
     const dateVal = document.getElementById("sourceDate").value;
     const timeVal = document.getElementById("sourceTime").value;
     const sourceTz = sourceCitySelect.value;
@@ -156,9 +156,28 @@ calcBtn.onclick = function(){
         return;
     }
     if(sourceTz === OTHER_FLAG){
-        alert("请先搜索并选择起点城市！");
-        return;
+        const srcKeyword = sourceSearchInput.value.trim();
+        if(!srcKeyword){
+            alert("起点【其他】搜索框为空！请输入城市");
+            return;
+        }
+        const cityGeo = await searchCityGeo(srcKeyword);
+        if(!cityGeo){
+            alert(`❌ 起点无法找到城市：${srcKeyword}`);
+            return;
+        }
+        let tzId = cityGeo.timezone;
+        const matchCity = cityList.find(c=>c.name.toLowerCase() === cityGeo.name.toLowerCase());
+        if(matchCity) tzId = matchCity.tz;
+        const opt = new Option(cityGeo.name, tzId);
+        sourceCitySelect.add(opt,0);
+        sourceCitySelect.value = tzId;
+        sourceSearchInput.style.display = "none";
+        sourceSearchInput.value = "";
     }
+
+    // 重新获取更新后的起点时区
+    const finalSourceTz = sourceCitySelect.value;
     const sourceDateTimeStr = `${dateVal}T${timeVal}`;
     const sourceDateObj = new Date(sourceDateTimeStr);
 
@@ -172,12 +191,30 @@ calcBtn.onclick = function(){
         return;
     }
 
-    // 遍历所有目标行，校验不能停留在【其他】
+    // 遍历所有目标行，自动处理【其他】状态
     for(let rowEl of targetItems){
-        const tz = rowEl.querySelector(".target-city-select").value;
-        if(tz === OTHER_FLAG){
-            alert("请完成目标城市搜索，不要停留在【其他（搜索城市）】");
-            return;
+        const selectEl = rowEl.querySelector(".target-city-select");
+        const searchInput = rowEl.querySelector(".target-search");
+        if(selectEl.value === OTHER_FLAG){
+            const keyword = searchInput.value.trim();
+            if(!keyword){
+                alert("有一行【其他】搜索框是空的，请输入城市名");
+                return;
+            }
+            const cityGeo = await searchCityGeo(keyword);
+            if(!cityGeo){
+                alert(`❌ 找不到城市：${keyword}`);
+                return;
+            }
+            let tzId = cityGeo.timezone;
+            const matchCity = cityList.find(c=>c.name.toLowerCase() === cityGeo.name.toLowerCase());
+            if(matchCity) tzId = matchCity.tz;
+            // 添加选项并选中
+            const opt = new Option(cityGeo.name, tzId);
+            selectEl.add(opt,0);
+            selectEl.value = tzId;
+            searchInput.style.display = "none";
+            searchInput.value = "";
         }
     }
 
