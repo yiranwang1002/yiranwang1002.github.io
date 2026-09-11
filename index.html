@@ -2,12 +2,21 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>多时区小工具</title>
+  <title>多时区时钟</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>我的时区网页</h1>
-  <button id="btn">点我测试JS</button>
+  <div class="container">
+    <h1>多时区时钟</h1>
+    <div class="clock-card">
+      <h2>多伦多 (UTC-4)</h2>
+      <p id="toronto-time" class="time-text">--:--:--</p>
+    </div>
+    <div class="clock-card">
+      <h2>北京时间 (UTC+8)</h2>
+      <p id="beijing-time" class="time-text">--:--:--</p>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

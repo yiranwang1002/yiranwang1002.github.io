@@ -1,10 +1,43 @@
-```
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  background-color: #12141c;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  text-align: center;
+}
+
 h1 {
-  color:#2266dd;
+  font-size: 42px;
+  margin-bottom: 40px;
+  color:#72aaff;
 }
-button {
-  padding:8px 16px;
-  font-size:16px;
-  cursor:pointer;
+
+.clock-card {
+  background-color: #1e2230;
+  padding:30px 50px;
+  border-radius:16px;
+  margin:20px 0;
 }
-```
+
+.clock-card h2 {
+  font-size:22px;
+  margin-bottom:12px;
+  opacity:0.85;
+}
+
+.time-text {
+  font-size:48px;
+  font-weight:bold;
+}
