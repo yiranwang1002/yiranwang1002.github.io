@@ -19,10 +19,10 @@
       <p id="beijing-time" class="time-text">--:--:--</p>
     </div>
 
-    <!-- ✨ 全新：任意地点跨时区换算器 -->
+    <!-- ✨ 增强版：批量多时区换算器 -->
     <div class="clock-card">
-      <h2>任意时区时间换算</h2>
-      <p class="hint">选择起点城市+时间，再选择目标城市，一键换算对应时刻</p>
+      <h2>任意时区时间换算（批量）</h2>
+      <p class="hint">选择起点城市+时间，添加多个目标城市，一键批量换算</p>
       <div class="row">
         <select id="city-from">
           <option value="America/Toronto">多伦多</option>
@@ -36,20 +36,32 @@
         <input type="date" id="input-date">
         <input type="time" id="input-time">
       </div>
-      <div class="row">
-        <span>换算到：</span>
-        <select id="city-to">
-          <option value="America/Toronto">多伦多</option>
-          <option value="Asia/Shanghai">北京</option>
-          <option value="Europe/London">伦敦</option>
-          <option value="America/New_York">纽约</option>
-          <option value="Europe/Paris">巴黎</option>
-          <option value="Asia/Tokyo">东京</option>
-          <option value="Australia/Sydney">悉尼</option>
-        </select>
+
+      <div id="target-list">
+        <!-- 这里动态生成多个目标时区选择框 -->
+        <div class="row target-row">
+          <span>换算到：</span>
+          <select class="city-to">
+            <option value="America/Toronto">多伦多</option>
+            <option value="Asia/Shanghai">北京</option>
+            <option value="Europe/London">伦敦</option>
+            <option value="America/New_York">纽约</option>
+            <option value="Europe/Paris">巴黎</option>
+            <option value="Asia/Tokyo">东京</option>
+            <option value="Australia/Sydney">悉尼</option>
+          </select>
+          <button type="button" onclick="removeTarget(this)">删除</button>
+        </div>
       </div>
-      <button onclick="convertAnyCity()">换算 →</button>
-      <p id="any-city-result" class="result-text"></p>
+
+      <div class="row" style="margin-top:12px;">
+        <button onclick="addTarget()">+增加目标城市（最多10个）</button>
+        <button onclick="batchConvert()">批量换算 →</button>
+      </div>
+
+      <!-- 批量换算结果时钟行，横向排列 -->
+      <div id="result-row" class="result-row">
+      </div>
     </div>
   </div>
 

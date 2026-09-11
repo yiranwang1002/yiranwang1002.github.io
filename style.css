@@ -1,88 +1,149 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: system-ui, sans-serif;
+// ========== 原有实时时钟代码（完全保留） ==========
+function updateClock() {
+  const now = new Date();
+
+  // 多伦多时间
+  const torontoOptions = {
+    timeZone: "America/Toronto",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  };
+  const torontoStr = now.toLocaleTimeString("zh-CN", torontoOptions);
+  document.getElementById("toronto-time").innerText = torontoStr;
+
+  // 北京时间
+  const beijingOptions = {
+    timeZone: "Asia/Shanghai",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  };
+  const beijingStr = now.toLocaleTimeString("zh-CN", beijingOptions);
+  document.getElementById("beijing-time").innerText = beijingStr;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ========== 批量换算新增逻辑 ==========
+// 最多10个目标
+const MAX_TARGET = 10;
+
+// 添加一行目标城市下拉
+function addTarget(){
+  const wrapper = document.getElementById("target-list");
+  const count = wrapper.querySelectorAll(".target-row").length;
+  if(count >= MAX_TARGET){
+    alert("最多只能添加10个目标城市");
+    return;
+  }
+  const html = `
+  <div class="row target-row">
+    <span>换算到：</span>
+    <select class="city-to">
+      <option value="America/Toronto">多伦多</option>
+      <option value="Asia/Shanghai">北京</option>
+      <option value="Europe/London">伦敦</option>
+      <option value="America/New_York">纽约</option>
+      <option value="Europe/Paris">巴黎</option>
+      <option value="Asia/Tokyo">东京</option>
+      <option value="Australia/Sydney">悉尼</option>
+    </select>
+    <button type="button" onclick="removeTarget(this)">删除</button>
+  </div>
+  `;
+  wrapper.insertAdjacentHTML("beforeend", html);
 }
 
-body {
-  background-color: #12141c;
-  color: white;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+// 删除当前这一行
+function removeTarget(btn){
+  btn.closest(".target-row").remove();
 }
 
-.container {
-  text-align: center;
-  padding: 20px;
+// 批量换算
+function batchConvert() {
+  const fromTz = document.getElementById("city-from").value;
+  const dateStr = document.getElementById("input-date").value;
+  const timeStr = document.getElementById("input-time").value;
+  if (!dateStr || !timeStr) {
+    alert("请选择日期和时间！");
+    return;
+  }
+
+  // 获取所有目标时区
+  const targetSelects = document.querySelectorAll(".city-to");
+  const targetTzList = [];
+  targetSelects.forEach(s => {
+    targetTzList.push(s.value);
+  });
+
+  // 源时间转UTC时间戳
+  const utcMs = zonedTimeToUtc(dateStr, timeStr, fromTz);
+  const sourceDate = new Date(utcMs);
+
+  // 格式化函数
+  function formatTime(dateObj, tz) {
+    const fmt = new Intl.DateTimeFormat("zh-CN", {
+      timeZone: tz,
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    });
+    return fmt.format(dateObj);
+  }
+
+  // 时区名称映射
+  const tzNameMap = {
+    "America/Toronto":"多伦多",
+    "Asia/Shanghai":"北京",
+    "Europe/London":"伦敦",
+    "America/New_York":"纽约",
+    "Europe/Paris":"巴黎",
+    "Asia/Tokyo":"东京",
+    "Australia/Sydney":"悉尼"
+  };
+
+  // 组装html：第一个卡片=源地点，后面是各个目标地点
+  let resultHtml = "";
+  // 源地点卡片
+  resultHtml += `
+    <div class="mini-clock">
+      <h4>${tzNameMap[fromTz]}</h4>
+      <div class="time">${formatTime(sourceDate, fromTz)}</div>
+    </div>
+  `;
+  // 遍历所有目标时区，生成卡片
+  targetTzList.forEach(tz => {
+    resultHtml += `
+      <div class="mini-clock">
+        <h4>${tzNameMap[tz]}</h4>
+        <div class="time">${formatTime(sourceDate, tz)}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById("result-row").innerHTML = resultHtml;
 }
 
-h1 {
-  font-size: 42px;
-  margin-bottom: 40px;
-  color:#72aaff;
-}
-
-.clock-card {
-  background-color: #1e2230;
-  padding:30px 50px;
-  border-radius:16px;
-  margin:20px 0;
-}
-
-.clock-card h2 {
-  font-size:22px;
-  margin-bottom:12px;
-  opacity:0.85;
-}
-
-.time-text {
-  font-size:48px;
-  font-weight:bold;
-}
-
-.hint {
-  font-size: 14px;
-  opacity: 0.7;
-  margin-bottom: 16px;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.row select, .row input {
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  background: #2a3040;
-  color: white;
-}
-
-button {
-  padding: 12px 32px;
-  font-size: 16px;
-  border: none;
-  border-radius: 8px;
-  background: #4a7dff;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #6a93ff;
-}
-
-.result-text {
-  margin-top: 16px;
-  font-size: 22px;
-  color: #ffd166;
-  min-height: 28px;
+// 把【某个时区的本地时间】转成UTC时间戳（自动处理夏令时）
+function zonedTimeToUtc(dateStr, timeStr, timeZone) {
+  const targetMs = Date.parse(dateStr + "T" + timeStr + ":00Z");
+  let utcMs = targetMs;
+  for (let i = 0; i < 3; i++) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      hour12: false,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+    }).formatToParts(new Date(utcMs));
+    const map = {};
+    parts.forEach(p => { map[p.type] = p.value; });
+    const localAsUtc = Date.UTC(+map.year, +map.month - 1, +map.day, +map.hour % 24, +map.minute, +map.second);
+    utcMs = targetMs - (localAsUtc - utcMs);
+  }
+  return utcMs;
 }
