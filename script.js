@@ -11,6 +11,7 @@ const cityList = [
     {name:"巴黎",tz:"Europe/Paris"},
     {name:"新加坡",tz:"Asia/Singapore"},
 ];
+const OTHER_FLAG = "__OTHER__"; // 标记：其他，开启搜索
 
 // 全局容器
 const targetListEl = document.getElementById("targetList");
@@ -18,6 +19,8 @@ const addBtn = document.getElementById("addTargetBtn");
 const calcBtn = document.getElementById("calcBtn");
 const resultBox = document.getElementById("resultBox");
 const sourceSearchInput = document.getElementById("sourceSearchCity");
+const sourceCitySelect = document.getElementById("sourceCitySelect");
+
 let targetCount = 0;
 const MAX_TARGET = 10;
 let resultClockTimer = null;
@@ -32,7 +35,7 @@ setInterval(updateLiveClock,1000);
 updateLiveClock();
 
 
-// ========== Open-Meteo API：城市搜索，获取经纬度+时区 ==========
+// ========== Open-Meteo API：城市搜索 ==========
 async function searchCityGeo(cityName){
     const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=zh`);
     const json = await res.json();
@@ -40,7 +43,14 @@ async function searchCityGeo(cityName){
     return json.results[0];
 }
 
-// 【增加目标城市按钮】点击新增一行：下拉+搜索+删除
+// 生成下拉选项HTML，末尾追加【其他（搜索城市）】
+function buildSelectOptions(){
+    let html = cityList.map(item=>`<option value="${item.tz}">${item.name}</option>`).join("");
+    html += `<option value="${OTHER_FLAG}">其他（搜索城市）</option>`;
+    return html;
+}
+
+// ========== 【增加目标城市行】 核心IF逻辑 ==========
 addBtn.onclick = function(){
     if(targetCount >= MAX_TARGET){
         alert("最多添加10个目标城市");
@@ -51,19 +61,31 @@ addBtn.onclick = function(){
     div.className="target-row";
     div.innerHTML = `
         <select class="target-city-select">
-            ${cityList.map(item=>`<option value="${item.tz}">${item.name}</option>`).join("")}
+            ${buildSelectOptions()}
         </select>
-        <input class="target-search" type="text" placeholder="🔍搜索城市，回车确认">
+        <input class="target-search" type="text" placeholder="🔍输入城市，回车搜索" style="display:none;">
         <button class="del-row">删除</button>
     `;
+    const selectEl = div.querySelector(".target-city-select");
+    const searchInput = div.querySelector(".target-search");
+
+    // 下拉切换监听：IF 判断，控制搜索框显示隐藏
+    selectEl.onchange = function(){
+        if(selectEl.value === OTHER_FLAG){
+            searchInput.style.display = "block";
+            searchInput.focus();
+        }else{
+            searchInput.style.display = "none";
+        }
+    }
+
     // 删除按钮
     div.querySelector(".del-row").onclick = function(){
         div.remove();
         targetCount--;
     }
-    // ✅【修复重点：目标行搜索框】
-    const searchInput = div.querySelector(".target-search");
-    const selectEl = div.querySelector(".target-city-select");
+
+    // 搜索框回车联网查询（仅在选【其他】时才会出现）
     searchInput.onkeydown = async function(e){
         if(e.key !== "Enter") return;
         const keyword = searchInput.value.trim();
@@ -73,26 +95,34 @@ addBtn.onclick = function(){
             alert("❌ 找不到该城市");
             return;
         }
-        // 优先用API自带时区，这是关键修复！
         let tzId = cityGeo.timezone;
-        // 同时在内置列表找匹配
         const matchCity = cityList.find(c=>c.name.toLowerCase() === cityGeo.name.toLowerCase());
         if(matchCity) tzId = matchCity.tz;
 
-        // 动态新增option到下拉框，防止找不到值
-        let hasOption = Array.from(selectEl.options).some(opt=>opt.value === tzId);
-        if(!hasOption){
-            const opt = new Option(cityGeo.name, tzId);
-            selectEl.add(opt);
-        }
+        // 新增搜索出来的城市到下拉选项
+        const opt = new Option(cityGeo.name, tzId);
+        selectEl.add(opt,0); // 插到最前面
         selectEl.value = tzId;
-        searchInput.value = ""; // 清空搜索框
-        alert(`✅ 已选中：${cityGeo.name}`);
+        searchInput.style.display = "none"; // 搜索成功，隐藏搜索框
+        searchInput.value = "";
+        alert(`✅ 已添加并选中：${cityGeo.name}`);
     }
     targetListEl.appendChild(div);
 }
 
-// ✅起点搜索框回车搜索城市
+// ========== 起点下拉，同样增加【其他】选项 + IF控制搜索框 ==========
+// 重构建起点下拉
+sourceCitySelect.innerHTML = buildSelectOptions();
+// 起点下拉切换事件
+sourceCitySelect.onchange = function(){
+    if(sourceCitySelect.value === OTHER_FLAG){
+        sourceSearchInput.style.display = "block";
+        sourceSearchInput.focus();
+    }else{
+        sourceSearchInput.style.display = "none";
+    }
+}
+// 起点搜索回车逻辑
 sourceSearchInput.onkeydown = async function(e){
     if(e.key !== "Enter") return;
     const keyword = sourceSearchInput.value.trim();
@@ -106,24 +136,27 @@ sourceSearchInput.onkeydown = async function(e){
     const matchCity = cityList.find(c=>c.name.toLowerCase() === cityGeo.name.toLowerCase());
     if(matchCity) tzId = matchCity.tz;
 
-    const sourceSelect = document.getElementById("sourceCitySelect");
-    let hasOption = Array.from(sourceSelect.options).some(opt=>opt.value === tzId);
-    if(!hasOption){
-        const opt = new Option(cityGeo.name, tzId);
-        sourceSelect.add(opt);
-    }
-    sourceSelect.value = tzId;
+    const opt = new Option(cityGeo.name, tzId);
+    sourceCitySelect.add(opt,0);
+    sourceCitySelect.value = tzId;
+    sourceSearchInput.style.display = "none";
     sourceSearchInput.value = "";
     alert(`✅ 起点选中：${cityGeo.name}`);
 }
+// 页面初始：起点搜索框默认隐藏
+sourceSearchInput.style.display = "none";
 
 // ========== 批量换算，生成【实时走动的时钟卡片】 ==========
 calcBtn.onclick = function(){
     const dateVal = document.getElementById("sourceDate").value;
     const timeVal = document.getElementById("sourceTime").value;
-    const sourceTz = document.getElementById("sourceCitySelect").value;
+    const sourceTz = sourceCitySelect.value;
     if(!dateVal || !timeVal){
         alert("请选择日期和时间");
+        return;
+    }
+    if(sourceTz === OTHER_FLAG){
+        alert("请先搜索并选择起点城市！");
         return;
     }
     const sourceDateTimeStr = `${dateVal}T${timeVal}`;
@@ -139,15 +172,20 @@ calcBtn.onclick = function(){
         return;
     }
 
+    // 遍历所有目标行，校验不能停留在【其他】
+    for(let rowEl of targetItems){
+        const tz = rowEl.querySelector(".target-city-select").value;
+        if(tz === OTHER_FLAG){
+            alert("请完成目标城市搜索，不要停留在【其他（搜索城市）】");
+            return;
+        }
+    }
+
     // 渲染卡片
     targetItems.forEach(rowEl=>{
-        const tz = rowEl.querySelector(".target-city-select").value;
-        // 查找城市名称，找不到就直接显示时区字符串
-        const cityInfo = cityList.find(c=>c.tz === tz);
-        let cityName = cityInfo ? cityInfo.name : tz;
-        // 如果下拉框自定义新增的选项，读取option文本
         const selectEl = rowEl.querySelector(".target-city-select");
-        cityName = selectEl.options[selectEl.selectedIndex].text;
+        const tz = selectEl.value;
+        const cityName = selectEl.options[selectEl.selectedIndex].text;
 
         const card = document.createElement("div");
         card.className="mini-clock";
