@@ -10,8 +10,15 @@ const cityList = [
     {name:"迪拜",tz:"Asia/Dubai"},
     {name:"巴黎",tz:"Europe/Paris"},
     {name:"新加坡",tz:"Asia/Singapore"},
+    {name:"雷克雅未克",tz:"Atlantic/Reykjavik"},
 ];
 const OTHER_FLAG = "__OTHER__"; // 标记：其他，开启搜索
+
+// ✅ 预设固定城市，每次批量换算自动出现在结果顶部
+const presetCities = [
+    {name:"多伦多",tz:"America/Toronto"},
+    {name:"北京",tz:"Asia/Shanghai"},
+];
 
 // 全局容器
 const targetListEl = document.getElementById("targetList");
@@ -35,9 +42,10 @@ setInterval(updateLiveClock,1000);
 updateLiveClock();
 
 
-// ========== Open-Meteo API：城市搜索 ==========
+// ========== Open-Meteo API：城市搜索【修复language，中文名称照样能查】 ==========
 async function searchCityGeo(cityName){
-    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=zh`);
+    // language=en：海外城市中文译名可命中；中文城市输入中文名称也正常识别
+    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en`);
     const json = await res.json();
     if(!json.results || json.results.length ===0) return null;
     return json.results[0];
@@ -146,7 +154,7 @@ sourceSearchInput.onkeydown = async function(e){
 // 页面初始：起点搜索框默认隐藏
 sourceSearchInput.style.display = "none";
 
-// ========== 批量换算【修复：自动处理下拉=其他的行】 ==========
+// ========== 批量换算【自动处理【其他】+ 增加预设城市卡片】 ==========
 calcBtn.onclick = async function(){
     const dateVal = document.getElementById("sourceDate").value;
     const timeVal = document.getElementById("sourceTime").value;
@@ -218,7 +226,18 @@ calcBtn.onclick = async function(){
         }
     }
 
-    // 渲染卡片
+    // ===== 第一步：渲染预设城市卡片 =====
+    presetCities.forEach(city=>{
+        const card = document.createElement("div");
+        card.className="mini-clock";
+        card.innerHTML = `
+            <h4>${city.name}</h4>
+            <div class="time" data-tz="${city.tz}" data-base="${sourceDateObj.getTime()}">--:--:--</div>
+        `;
+        resultBox.appendChild(card);
+    })
+
+    // ===== 第二步：渲染用户添加的目标城市卡片 =====
     targetItems.forEach(rowEl=>{
         const selectEl = rowEl.querySelector(".target-city-select");
         const tz = selectEl.value;
