@@ -8,6 +8,8 @@
 <body>
   <div class="container">
     <h1>多时区时钟</h1>
+
+    <!-- 原有实时时钟区域 完全保留 -->
     <div class="clock-card">
       <h2>多伦多 (UTC-4)</h2>
       <p id="toronto-time" class="time-text">--:--:--</p>
@@ -15,6 +17,39 @@
     <div class="clock-card">
       <h2>北京时间 (UTC+8)</h2>
       <p id="beijing-time" class="time-text">--:--:--</p>
+    </div>
+
+    <!-- ✨ 全新：任意地点跨时区换算器 -->
+    <div class="clock-card">
+      <h2>任意时区时间换算</h2>
+      <p class="hint">选择起点城市+时间，再选择目标城市，一键换算对应时刻</p>
+      <div class="row">
+        <select id="city-from">
+          <option value="America/Toronto">多伦多</option>
+          <option value="Asia/Shanghai">北京</option>
+          <option value="Europe/London">伦敦</option>
+          <option value="America/New_York">纽约</option>
+          <option value="Europe/Paris">巴黎</option>
+          <option value="Asia/Tokyo">东京</option>
+          <option value="Australia/Sydney">悉尼</option>
+        </select>
+        <input type="date" id="input-date">
+        <input type="time" id="input-time">
+      </div>
+      <div class="row">
+        <span>换算到：</span>
+        <select id="city-to">
+          <option value="America/Toronto">多伦多</option>
+          <option value="Asia/Shanghai">北京</option>
+          <option value="Europe/London">伦敦</option>
+          <option value="America/New_York">纽约</option>
+          <option value="Europe/Paris">巴黎</option>
+          <option value="Asia/Tokyo">东京</option>
+          <option value="Australia/Sydney">悉尼</option>
+        </select>
+      </div>
+      <button onclick="convertAnyCity()">换算 →</button>
+      <p id="any-city-result" class="result-text"></p>
     </div>
   </div>
 

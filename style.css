@@ -16,6 +16,7 @@ body {
 
 .container {
   text-align: center;
+  padding: 20px;
 }
 
 h1 {
@@ -40,4 +41,48 @@ h1 {
 .time-text {
   font-size:48px;
   font-weight:bold;
+}
+
+.hint {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-bottom: 16px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.row select, .row input {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  background: #2a3040;
+  color: white;
+}
+
+button {
+  padding: 12px 32px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4a7dff;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #6a93ff;
+}
+
+.result-text {
+  margin-top: 16px;
+  font-size: 22px;
+  color: #ffd166;
+  min-height: 28px;
 }
