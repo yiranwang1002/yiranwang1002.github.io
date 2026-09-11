@@ -2,63 +2,41 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>多时区时钟 | 异国守护</title>
+    <title>多时区时钟</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div class="container">
     <h1>多时区时钟 ⏰</h1>
-
+    <!-- 顶部固定时钟 -->
     <div class="clock-card">
-        <h2>多伦多 (America/Toronto)</h2>
-        <!-- ✅新增这一行 -->
-        <div class="date-text" id="torontoDate">--</div>
-        <div class="time-text" id="torontoTime">--:--:--</div>
+        <div>多伦多 (America/Toronto)</div>
+        <div class="mini-date" id="torontoDate">--</div>
+        <div class="time" id="torontoTime">--:--:--</div>
     </div>
     <div class="clock-card">
-        <h2>北京时间 (Asia/Shanghai)</h2>
-        <!-- ✅新增这一行 -->
-        <div class="date-text" id="beijingDate">--</div>
-        <div class="time-text" id="beijingTime">--:--:--</div>
+        <div>北京时间 (Asia/Shanghai)</div>
+        <div class="mini-date" id="beijingDate">--</div>
+        <div class="time" id="beijingTime">--:--:--</div>
     </div>
 
-    <div class="clock-card">
-        <h2>任意时区时间换算（批量）</h2>
-        <p class="hint">选择起点城市/搜索城市，添加多个目标城市，一键批量换算；卡片时钟实时走动</p>
-
-        <!-- 起点：下拉 + 搜索 -->
-        <div class="row">
-            <select id="sourceCitySelect">
-                <option value="America/Toronto">多伦多</option>
-                <option value="Asia/Shanghai">北京</option>
-                <option value="America/New_York">纽约</option>
-                <option value="Europe/London">伦敦</option>
-                <option value="Asia/Tokyo">东京</option>
-                <option value="Australia/Sydney">悉尼</option>
-                <option value="America/Los_Angeles">洛杉矶</option>
-                <option value="Asia/Dubai">迪拜</option>
-                <option value="Europe/Paris">巴黎</option>
-                <option value="Asia/Singapore">新加坡</option>
-            </select>
-            <input type="text" id="sourceSearchCity" placeholder="🔍 搜索城市(例如:Paris)">
-            <input type="date" id="sourceDate">
-            <input type="time" id="sourceTime">
+    <!-- 批量换算区域 -->
+    <div class="panel">
+        <h3>任意时区时间换算（批量）</h3>
+        <p class="desc">选择起点城市/搜索城市，添加多个目标城市，一键批量换算；卡片时钟实时走动</p>
+        <div class="source-row">
+            <select id="sourceCitySelect"></select>
+            <input type="text" id="sourceSearchCity" placeholder="🔍输入城市，回车搜索">
+            <input type="date" id="sourceDate" value="2026/09/30">
+            <input type="time" id="sourceTime" value="14:28">
         </div>
-
-        <!-- 新增目标城市区域 -->
-        <div id="targetList" class="row"></div>
-
-        <div class="row">
+        <div id="targetList"></div>
+        <div class="btn-row">
             <button id="addTargetBtn">+增加目标城市（最多10个）</button>
             <button id="calcBtn">批量换算 →</button>
         </div>
-
-        <!-- 结果：多个实时时钟卡片 -->
-        <div class="result-row" id="resultBox"></div>
+        <div id="resultBox" class="result-container"></div>
     </div>
-</div>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

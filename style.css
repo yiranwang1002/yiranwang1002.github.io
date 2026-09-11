@@ -1,122 +1,73 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, sans-serif;
+*{
+    box-sizing:border-box;
+    font-family:system-ui, sans-serif;
 }
-
-body {
-  background-color: #12141c;
-  color: #ffffff;
-  min-height: 100vh;
+body{
+    background:#12141c;
+    color:#eee;
+    max-width:1200px;
+    margin:24px auto;
+    padding:0 16px;
 }
-
-.container {
-  padding: 24px;
-  max-width: 1250px;
-  margin: 0 auto;
+.clock-card{
+    background:#1f2230;
+    border-radius:16px;
+    padding:24px;
+    margin-bottom:16px;
 }
-
-h1 {
-  font-size: 42px;
-  margin-bottom: 24px;
-  color:#72aaff;
+.time{
+    font-size:48px;
+    color:#ffdd77;
+    font-weight:bold;
+    margin-top:8px;
 }
-
-.clock-card {
-  background-color: #1e2230;
-  padding:28px 24px;
-  border-radius:18px;
-  margin:20px 0;
-}
-
-.clock-card h2 {
-  font-size:22px;
-  margin-bottom:12px;
-  opacity:0.85;
-}
-
-.time-text {
-  font-size:48px;
-  font-weight:bold;
-  color:#ffd166;
-}
-
-.hint {
-  font-size: 14px;
-  opacity: 0.7;
-  margin-bottom: 18px;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items:center;
-  margin-bottom:14px;
-}
-.target-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  align-items:center;
-  margin:8px 0;
-}
-
-select, input {
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  background: #2a3040;
-  color: white;
-}
-
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 8px;
-  background: #4a7dff;
-  color: white;
-  cursor: pointer;
-  transition: 0.2s;
-}
-button:hover {
-  background: #6a93ff;
-}
-
-.result-row {
-  display:flex;
-  gap:16px;
-  flex-wrap:wrap;
-  margin-top:24px;
-}
-
-.mini-clock {
-  background:#2a3040;
-  padding:20px;
-  border-radius:14px;
-  min-width:170px;
-}
-.mini-clock h4 {
-  opacity:0.8;
-  margin-bottom:8px;
-  font-size:18px;
-}
-.mini-clock .time {
-  font-size:26px;
-  font-weight:bold;
-  color:#ffd166;
-}
-
 .mini-date {
-  font-size:14px;
-  color:#bbbbbb;
-  margin-bottom:6px;
+    font-size:14px;
+    color:#bbbbbb;
+    margin-bottom:6px;
 }
-.mini-clock .time {
-  font-size:26px;
-  font-weight:bold;
-  color:#ffd166;
+.panel{
+    background:#1f2230;
+    border-radius:16px;
+    padding:24px;
+}
+.source-row, .target-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin:8px 0;
+}
+.result-container{
+    display:flex;
+    gap:16px;
+    margin-top:20px;
+    flex-wrap:wrap;
+}
+.mini-clock{
+    background:#2c3042;
+    padding:16px;
+    border-radius:12px;
+    min-width:140px;
+}
+button{
+    padding:8px 14px;
+    border:none;
+    border-radius:6px;
+    background:#427bff;
+    color:white;
+    cursor:pointer;
+}
+button:hover{
+    background:#2f60d8;
+}
+select,input{
+    padding:7px;
+    border-radius:6px;
+    border:none;
+}
+#sourceSearchCity{
+    display:none;
+}
+.target-search{
+    display:none;
 }

@@ -1,4 +1,3 @@
-// 内置// 内置常用城市 IANA时区
 const cityList = [
     {name:"多伦多",tz:"America/Toronto"},
     {name:"北京",tz:"Asia/Shanghai"},
@@ -14,13 +13,12 @@ const cityList = [
     {name:"里约热内卢",tz:"America/Rio_de_Janeiro"},
     {name:"符拉迪沃斯托克",tz:"Asia/Vladivostok"},
 ];
-const OTHER_FLAG = "__OTHER__"; // 标记：其他，开启搜索
-// ✅ 预设固定城市，每次批量换算自动出现在结果顶部
+const OTHER_FLAG = "__OTHER__";
 const presetCities = [
     {name:"多伦多",tz:"America/Toronto"},
     {name:"北京",tz:"Asia/Shanghai"},
 ];
-// 全局容器
+
 const targetListEl = document.getElementById("targetList");
 const addBtn = document.getElementById("addTargetBtn");
 const calcBtn = document.getElementById("calcBtn");
@@ -31,32 +29,18 @@ let targetCount = 0;
 const MAX_TARGET = 10;
 let resultClockTimer = null;
 
-function getTzDateTime(tz, dateObj){
-    // 👉！！！这里手动敲普通减号 zh-CN，不要复制旧的zh‑CN
-    const dateFmt = new Intl.DateTimeFormat('zh-CN',{
-        timeZone:tz,
-        year:'numeric',month:'2-digit',day:'2-digit'
-    });
-    const timeFmt = new Intl.DateTimeFormat('zh-CN',{
-        timeZone:tz,
-        hour:'2-digit',minute:'2-digit',second:'2-digit',
-        hour12:false
-    });
-    return {
-        dateStr: dateFmt.format(dateObj),
-        timeStr: timeFmt.format(dateObj)
-    };
-}
-
-// ========== 实时顶部时钟 ==========
+// 顶部实时时钟
 function updateLiveClock(){
     const now = new Date();
-    document.getElementById("torontoTime").innerText = new Intl.DateTimeFormat('zh-CN',{timeZone:"America/Toronto",hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(now);
-    document.getElementById("beijingTime").innerText = new Intl.DateTimeFormat('zh-CN',{timeZone:"Asia/Shanghai",hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(now);
+    document.getElementById("torontoTime").innerText = new Intl.DateTimeFormat('zh-CN',{timeZone:"America/Toronto",hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now);
+    document.getElementById("beijingTime").innerText = new Intl.DateTimeFormat('zh-CN',{timeZone:"Asia/Shanghai",hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now);
+    document.getElementById("torontoDate").innerText = new Intl.DateTimeFormat('zh-CN',{timeZone:"America/Toronto",year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+    document.getElementById("beijingDate").innerText = new Intl.DateTimeFormat('zh-CN',{timeZone:"Asia/Shanghai",year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
 }
 setInterval(updateLiveClock,1000);
 updateLiveClock();
-// ========== 【新增】中文 → 英文翻译API (MyMemory，无需key) ==========
+
+// 中文转英文
 async function cnToEn(text) {
     try {
         const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`;
@@ -71,26 +55,27 @@ async function cnToEn(text) {
         return null;
     }
 }
-// ========== Open‑Meteo API：城市搜索【增加翻译前置逻辑】 ==========
+
+// 城市搜索
 async function searchCityGeo(rawCityName){
     let searchWord = rawCityName.trim();
-    // 尝试中文翻译成英文，优先使用英文搜索海外城市
     const enName = await cnToEn(searchWord);
     if(enName){
         searchWord = enName;
     }
-    const res = await fetch(`https://geocoding‑api.open‑meteo.com/v1/search?name=${encodeURIComponent(searchWord)}&count=1&language=en`);
+    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchWord)}&count=1&language=en`);
     const json = await res.json();
     if(!json.results || json.results.length ===0) return null;
     return json.results[0];
 }
-// 生成下拉选项HTML，末尾追加【其他（搜索城市）】
+
 function buildSelectOptions(){
     let html = cityList.map(item=>`<option value="${item.tz}">${item.name}</option>`).join("");
     html += `<option value="${OTHER_FLAG}">其他（搜索城市）</option>`;
     return html;
 }
-// ========== 【增加目标城市行】 核心IF逻辑 ==========
+
+// 添加目标城市行
 addBtn.onclick = function(){
     if(targetCount >= MAX_TARGET){
         alert("最多添加10个目标城市");
@@ -98,17 +83,16 @@ addBtn.onclick = function(){
     }
     targetCount++;
     const div = document.createElement("div");
-    div.className="target‑row";
+    div.className="target-row";
     div.innerHTML = `
-        <select class="target‑city‑select">
+        <select class="target-city-select">
             ${buildSelectOptions()}
         </select>
-        <input class="target‑search" type="text" placeholder="🔍输入城市，回车搜索" style="display:none;">
-        <button class="del‑row">删除</button>
+        <input class="target-search" type="text" placeholder="🔍输入城市，回车搜索" style="display:none;">
+        <button class="del-row">删除</button>
     `;
-    const selectEl = div.querySelector(".target‑city‑select");
-    const searchInput = div.querySelector(".target‑search");
-    // 下拉切换监听：IF 判断，控制搜索框显示隐藏
+    const selectEl = div.querySelector(".target-city-select");
+    const searchInput = div.querySelector(".target-search");
     selectEl.onchange = function(){
         if(selectEl.value === OTHER_FLAG){
             searchInput.style.display = "block";
@@ -117,12 +101,10 @@ addBtn.onclick = function(){
             searchInput.style.display = "none";
         }
     }
-    // 删除按钮
-    div.querySelector(".del‑row").onclick = function(){
+    div.querySelector(".del-row").onclick = function(){
         div.remove();
         targetCount--;
     }
-    // 搜索框回车联网查询（仅在选【其他】时才会出现）
     searchInput.onkeydown = async function(e){
         if(e.key !== "Enter") return;
         const keyword = searchInput.value.trim();
@@ -135,20 +117,18 @@ addBtn.onclick = function(){
         let tzId = cityGeo.timezone;
         const matchCity = cityList.find(c=>c.name.toLowerCase() === cityGeo.name.toLowerCase());
         if(matchCity) tzId = matchCity.tz;
-        // 新增搜索出来的城市到下拉选项
         const opt = new Option(cityGeo.name, tzId);
-        selectEl.add(opt,0); // 插到最前面
+        selectEl.add(opt,0);
         selectEl.value = tzId;
-        searchInput.style.display = "none"; // 搜索成功，隐藏搜索框
+        searchInput.style.display = "none";
         searchInput.value = "";
         alert(`✅ 已添加并选中：${cityGeo.name}`);
     }
     targetListEl.appendChild(div);
 }
-// ========== 起点下拉，同样增加【其他】选项 + IF控制搜索框 ==========
-// 重构建起点下拉
+
+// 起点下拉初始化
 sourceCitySelect.innerHTML = buildSelectOptions();
-// 起点下拉切换事件
 sourceCitySelect.onchange = function(){
     if(sourceCitySelect.value === OTHER_FLAG){
         sourceSearchInput.style.display = "block";
@@ -157,7 +137,6 @@ sourceCitySelect.onchange = function(){
         sourceSearchInput.style.display = "none";
     }
 }
-// 起点搜索回车逻辑
 sourceSearchInput.onkeydown = async function(e){
     if(e.key !== "Enter") return;
     const keyword = sourceSearchInput.value.trim();
@@ -177,9 +156,9 @@ sourceSearchInput.onkeydown = async function(e){
     sourceSearchInput.value = "";
     alert(`✅ 起点选中：${cityGeo.name}`);
 }
-// 页面初始：起点搜索框默认隐藏
 sourceSearchInput.style.display = "none";
-// ========== 批量换算【自动处理【其他】+ 增加预设城市卡片】 ==========
+
+// 批量换算按钮
 calcBtn.onclick = async function(){
     const dateVal = document.getElementById("sourceDate").value;
     const timeVal = document.getElementById("sourceTime").value;
@@ -208,22 +187,21 @@ calcBtn.onclick = async function(){
         sourceSearchInput.style.display = "none";
         sourceSearchInput.value = "";
     }
-    // 重新获取更新后的起点时区
-    const finalSourceTz = sourceCitySelect.value;
+
     const sourceDateTimeStr = `${dateVal}T${timeVal}`;
     const sourceDateObj = new Date(sourceDateTimeStr);
-    // 清空旧结果 + 停止旧定时器
     resultBox.innerHTML = "";
     if(resultClockTimer) clearInterval(resultClockTimer);
-    const targetItems = document.querySelectorAll(".target‑row");
+
+    const targetItems = document.querySelectorAll(".target-row");
     if(targetItems.length ===0){
         alert("请先添加目标城市");
         return;
     }
-    // 遍历所有目标行，自动处理【其他】状态
+
     for(let rowEl of targetItems){
-        const selectEl = rowEl.querySelector(".target‑city‑select");
-        const searchInput = rowEl.querySelector(".target‑search");
+        const selectEl = rowEl.querySelector(".target-city-select");
+        const searchInput = rowEl.querySelector(".target-search");
         if(selectEl.value === OTHER_FLAG){
             const keyword = searchInput.value.trim();
             if(!keyword){
@@ -238,7 +216,6 @@ calcBtn.onclick = async function(){
             let tzId = cityGeo.timezone;
             const matchCity = cityList.find(c=>c.name.toLowerCase() === cityGeo.name.toLowerCase());
             if(matchCity) tzId = matchCity.tz;
-            // 添加选项并选中
             const opt = new Option(cityGeo.name, tzId);
             selectEl.add(opt,0);
             selectEl.value = tzId;
@@ -246,48 +223,68 @@ calcBtn.onclick = async function(){
             searchInput.value = "";
         }
     }
-    // ===== 第一步：渲染预设城市卡片 =====
+
+    // 渲染预设城市卡片
     presetCities.forEach(city=>{
         const card = document.createElement("div");
-        card.className="mini‑clock";
+        card.className="mini-clock";
         card.innerHTML = `
             <h4>${city.name}</h4>
-            <div class="mini‑date" data‑tz="${city.tz}" data‑base="${sourceDateObj.getTime()}">--</div>
-            <div class="time" data‑tz="${city.tz}" data‑base="${sourceDateObj.getTime()}">--:--:--</div>
+            <div class="mini-date" data-tz="${city.tz}" data-base="${sourceDateObj.getTime()}">--</div>
+            <div class="time" data-tz="${city.tz}" data-base="${sourceDateObj.getTime()}">--:--:--</div>
         `;
         resultBox.appendChild(card);
-    })
-    // ===== 第二步：渲染用户添加的目标城市卡片 =====
+    });
+
+    // 渲染用户添加的目标城市卡片
     targetItems.forEach(rowEl=>{
-        const selectEl = rowEl.querySelector(".target‑city‑select");
+        const selectEl = rowEl.querySelector(".target-city-select");
         const tz = selectEl.value;
         const cityName = selectEl.options[selectEl.selectedIndex].text;
         const card = document.createElement("div");
-        card.className="mini‑clock";
+        card.className="mini-clock";
         card.innerHTML = `
             <h4>${cityName}</h4>
-            <div class="mini‑date" data‑tz="${tz}" data‑base="${sourceDateObj.getTime()}">--</div>
-            <div class="time" data‑tz="${tz}" data‑base="${sourceDateObj.getTime()}">--:--:--</div>
+            <div class="mini-date" data-tz="${tz}" data-base="${sourceDateObj.getTime()}">--</div>
+            <div class="time" data-tz="${tz}" data-base="${sourceDateObj.getTime()}">--:--:--</div>
         `;
         resultBox.appendChild(card);
-    })
-    // 每秒刷新全部结果卡片时钟（日期+时间）
+    });
+
+    // 刷新时间+日期
     function refreshResultClocks(){
         const timeEls = resultBox.querySelectorAll(".time");
-        const dateEls = resultBox.querySelectorAll(".mini‑date");
-        timeEls.forEach(el=>{
-            const tz = el.dataset.tz;
-            const baseTs = Number(el.dataset.base);
-            const targetTime = new Date(baseTs + (Date.now() - baseTs));
-            el.innerText = getTzDateTime(tz, targetTime).timeStr;
-        })
-        dateEls.forEach(el=>{
-            const tz = el.dataset.tz;
-            const baseTs = Number(el.dataset.base);
-            const targetTime = new Date(baseTs + (Date.now() - baseTs));
-            el.innerText = getTzDateTime(tz, targetTime).dateStr;
-        })
+        const dateEls = resultBox.querySelectorAll(".mini-date");
+
+        timeEls.forEach(function(el){
+            var tz = el.getAttribute("data-tz");
+            var baseTs = Number(el.getAttribute("data-base"));
+            var nowOffset = Date.now() - baseTs;
+            var targetTime = new Date(baseTs + nowOffset);
+            el.innerText = new Intl.DateTimeFormat('zh-CN', {
+                timeZone: tz,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).format(targetTime);
+        });
+
+        dateEls.forEach(function(el){
+            var tz = el.getAttribute("data-tz");
+            var baseTs = Number(el.getAttribute("data-base"));
+            var nowOffset = Date.now() - baseTs;
+            var targetTime = new Date(baseTs + nowOffset);
+            el.innerText = new Intl.DateTimeFormat('zh-CN', {
+                timeZone: tz,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(targetTime);
+        });
     }
+
+    console.log("开始刷新结果卡片");
     refreshResultClocks();
     resultClockTimer = setInterval(refreshResultClocks,1000);
 }
